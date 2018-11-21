@@ -60,7 +60,7 @@ The aim of hw-08 is to add features to the BC liquor shiny app and deploy it.
 |Readme file of Homework 8 | [Readme](https://github.com/STAT545-UBC-students/hw08-chenchenguo/blob/master/README.md)|
 |Source code | [app.R](https://github.com/STAT545-UBC-students/hw08-chenchenguo/blob/master/bcl/app.R)|
 |Rest files | [files](https://github.com/STAT545-UBC-students/hw08-chenchenguo/tree/master/bcl)|
-|Result|[web](https://chenchenguo.shinyapps.io/BCL_LIQUOR/)|
+|Result-APP|[Link](https://chenchenguo.shinyapps.io/BCL_LIQUOR/)|
 ## References
 - [Dean Attali's tutorial](http://deanattali.com/blog/building-shiny-apps-tutorial/)
 - [Rdocumentation](https://www.rdocumentation.org/)

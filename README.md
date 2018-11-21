@@ -88,7 +88,7 @@ Content
 | Readme file of Homework 8 | [Readme](https://github.com/STAT545-UBC-students/hw08-chenchenguo/blob/master/README.md) |
 | Source code               | [app.R](https://github.com/STAT545-UBC-students/hw08-chenchenguo/blob/master/bcl/app.R)  |
 | Rest files                | [files](https://github.com/STAT545-UBC-students/hw08-chenchenguo/tree/master/bcl)        |
-| Result                    | [web](https://chenchenguo.shinyapps.io/BCL_LIQUOR/)                                      |
+| Result-APP                | [Link](https://chenchenguo.shinyapps.io/BCL_LIQUOR/)                                     |
 
 References
 ----------
