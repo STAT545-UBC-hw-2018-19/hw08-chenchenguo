@@ -34,7 +34,24 @@ The aim of hw-08 is to add features to the BC liquor shiny app and deploy it.
   * ![](./bcl/www/logo.gif)
   
 ### Feature 3
-  * Place the plot and the table in separate tabs
+  * Add another filter called alcohol_content, user can choose their liquor based on alcohol content
+  
+### Feature 4
+  * Place the plot and the table in separate tabs of mainbody, also in the separate filter of price, alcohol content and country
+
+### Feature 5
+  * Add an active button 'plot' to let user Firtstly choose the range and then plot the data (No plot before click 'plot' button)
+
+### Feature 6
+  * Add some CSS content, like a time context to let user know the current where you can click update to observe instant time
+  
+### Feature 7
+  * Add dashboard feature to clearly show the structure and a link to BC LIQUOR store at right top
+  * ![](./bcl/www/BCLPIC.jpg)
+
+### Rest features 
+  * About different colors and download link of csv file which also being added on app
+
 
 ## Content
 

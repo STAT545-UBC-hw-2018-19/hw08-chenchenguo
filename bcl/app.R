@@ -1,12 +1,43 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
 library(shiny)
-library(dplyr)
 library(ggplot2)
+library(dplyr)
 library(shinyjs)
+library(shinydashboard)
 
-
-# load the data (retrieve and clean raw data if this is the first time)
+# Define UI for application that draws a histogram
+# ui <- fluidPage(
+# 
+#     # Application title
+#     titlePanel("Old Faithful Geyser Data"),
+# 
+#     # Sidebar with a slider input for number of bins 
+#     sidebarLayout(
+#         sidebarPanel(
+#             sliderInput("bins",
+#                         "Number of bins:",
+#                         min = 1,
+#                         max = 50,
+#                         value = 30)
+#         ),
+# 
+#         # Show a plot of the generated distribution
+#         mainPanel(
+#            plotOutput("distPlot")
+#         )
+#     )
+# )
 
 filename <- file.path("data", "bcl-data.csv")
+
 if (file.exists(filename)) {
   bcl <- read.csv(filename, stringsAsFactors = FALSE)
 } else {
@@ -29,127 +60,196 @@ if (file.exists(filename)) {
   write.csv(bcl, filename, row.names = FALSE)
 }
 
-ui <- fluidPage(
-  titlePanel("BC Liquor Store prices"),
-  
-  img(src = "./logo.gif"),
-  
-  sidebarLayout(
-    sidebarPanel(
-      h4(
-        "Had a long day?  This app will help you find the right drink for tonight! Just use the filters below..."
-      ),
-      br(),
-      
-      tabsetPanel(id = "optionTabs", type = "tabs",
-                  tabPanel("Filter", icon = icon("search-dollar"),
-                           
-                           #--------------------------------------
-                           # sort by price
-                           checkboxInput("sortByPrice", "Sort by price", FALSE),
-                           ## a conditionalPanel for ascending or descending ordering
-                           conditionalPanel(
-                             condition = "input.sortByPrice",
-                             uiOutput("PriceSortOutput")),
-                           #-----------------------------------------------
-                           
-                           sliderInput("priceInput", "Price", 0, 100, c(25, 40), pre = "$"),
-                           uiOutput("typeSelectOutput")
-                           
-                           ),
-                  # end with the first tab
-                  #start of the second tab
-                  tabPanel("Country", icon = icon("globe-americas"),
-                           checkboxInput("filterCountry", "Filter by country", FALSE),
-                           conditionalPanel(
-                             condition = "input.filterCountry",
-                             uiOutput("countrySelectorOutput"))
-                           )
-                  ),
-      hr(),
-      span("Data source:", 
-           tags$a("OpenDataBC",
-                  href = "https://www.opendatabc.ca/dataset/bc-liquor-store-product-price-list-current-prices")),
-      br(),
-      span("Learn how to build this app", a(href = "http://deanattali.com/blog/building-shiny-apps-tutorial/", "with my Shiny tutorial")),
-      br(), br(),
-      em(
-        span("Created by", a(href = "http://deanattali.com", "Dean Attali")),
-        HTML("&bull;"),
-        span("Code", a(href = "https://github.com/daattali/shiny-server/tree/master/bcl", "on GitHub"))
-      )
+
+
+
+ui <- dashboardPage(
+  dashboardHeader(title = "BC Liquor Store Prices",
+                  tags$li(a(href='http://www.bcliquorstores.com',
+                            tags$img(src='BCLPIC.jpg',
+                                     height='40',width='90')),
+                          class = "dropdown")
+                  
+  ),
+  # skin = "purple",
+  dashboardSidebar(
+    ###-------------------------------
+    ## add css
+    shinyjs::useShinyjs(),
+    shinyjs::inlineCSS(list(.big = "font-size: 2em")),
+    div(id = "myapp",
+        checkboxInput("big", "Too small?", FALSE),
+        ## test for bold input
+        strong("Use below filters to choose your Liquor"),
+        br(),
+        
+        p("Time: ",
+          span(id = "time", date()),
+          a(id = "update", "Update", href = "#")
+        ),
+        br()
     ),
-    mainPanel(
-      h3(textOutput("summaryText")),
-      downloadButton("download", "Download results"),
-      br(),
-      plotOutput("plot"),
-      br(), br(),
-      #tableOutput("prices")
-      DT::dataTableOutput("prices")
-    )
+    
+    tags$head(tags$style("body{ color: grey; }")),
+    ## css done------------------------
+    
+    tabsetPanel( id = "optionTabs", type = "tabs",
+                 
+                 tabPanel("Price", icon = icon("search-dollar"),
+                          
+                          checkboxInput("sortByPrice", "Sort by price and alcohol", FALSE),
+                          
+                          conditionalPanel(
+                            condition = "input.sortByPrice",
+                            uiOutput("PriceSortOutput"),
+                            sliderInput("priceInput", "Price", 0, 100, c(25, 40),pre = "$"),
+                            sliderInput("alcoholInput", "Alcohol_Content", 2, 76, c(10, 15), post = "°"),
+                            uiOutput("typeSelectOutput")
+                          )
+                 ),
+                 tabPanel("Country", icon = icon("globe-americas"),
+                          checkboxInput("filterCountry", "Filtered by country", FALSE),
+                          conditionalPanel(
+                            condition = "input.filterCountry",
+                            uiOutput("countrySelectorOutput"))
+                 )
+    ),
+    actionButton("go", "Plot"),
+    hr(),
+    span("Data source:", 
+         tags$a("OpenDataBC",
+                href = "https://www.opendatabc.ca/dataset/bc-liquor-store-product-price-list-current-prices")),
+    br()
+    
+    
+  ),
+  skin = "purple",
+  
+  dashboardBody(
+    
+    
+    h3(textOutput("summaryText")),
+    
+    br(),
+    tabsetPanel( id = "tabset",
+                 
+                 tabPanel("Plot",
+                          plotOutput("coolplot")
+                 ),
+                 tabPanel("Results", DT::dataTableOutput("results"))
+                 
+                 
+                 
+    ),
+    #div(img(src = "logo.gif"),height = '20', width = '180', style="text-align: center;"),
+    tags$img(src='logo.gif',
+             height='300',width='680'),
+    hr(),
+    downloadButton("download", "Download data file")
+    
   )
 )
 
-server <- function(input, output, session) {
-  output$countrySelectorOutput <- renderUI({
-    selectInput("countryInput", "Country",
-                sort(unique(bcl$Country)),
-                selected = "CANADA")
+
+
+
+#===============================================================
+# Define server logic
+
+server <- function(input, output) {
+  #---------------------css part
+  
+  shinyjs::onclick("update", shinyjs::html("time", date()))
+  
+  observe({
+    shinyjs::toggleClass("myapp", "big", input$big)
+  })
+  
+  observeEvent(input$reset, {
+    shinyjs::reset("myapp")
+  })
+  
+  
+  ## action button
+  v <- reactiveValues(doPlot = FALSE)
+  
+  observeEvent(input$go, {
+    v$doPlot <- input$go
+  })
+  
+  observeEvent(input$tabset, {
+    v$doPlot <- FALSE
+  })
+  
+  
+  
+  #create reactive variable to reduce duplication
+  
+  filtered <- reactive({
+    
+    if(is.null(input$countryInput)){return (NULL)}
+    if(is.null(input$priceInput)){return (NULL)}
+    if(is.null(input$alcoholInput)){return (NULL)}
+    if(is.null(input$typeInput)){return (NULL)}
+    bcl %>%
+      filter(Price >= input$priceInput[1],
+             Price <= input$priceInput[2],
+             Alcohol_Content >= input$alcoholInput[1],
+             Alcohol_Content <= input$alcoholInput[2],
+             Type == input$typeInput,
+             Country == input$countryInput
+      )
   })
   
   output$typeSelectOutput <- renderUI({
     selectInput("typeInput", "Product type",
                 sort(unique(bcl$Type)),
                 multiple = TRUE,
-                selected = c("BEER", "WINE"))
+                selected = c("WINE"))
+  })
+  
+  output$countrySelectorOutput <- renderUI({
+    selectInput("countryInput", "Country",
+                sort(unique(bcl$Country)),
+                selected = "CANADA")
+  })
+  
+  
+  output$coolplot <- renderPlot({
+    if(v$doPlot == FALSE){
+      return()
+    }
+    
+    if(is.null(filtered())){
+      return()
+    }
+    
+    isolate({
+      ggplot(filtered(), aes(Alcohol_Content))+
+        geom_histogram(colour = "black")+
+        theme_classic(20)
+      
+    })
+    
+  })
+  
+  
+  output$results <- DT::renderDataTable({
+    filtered()
   })
   
   output$summaryText <- renderText({
-    numOptions <- nrow(prices())
-    if (is.null(numOptions)) {
-      numOptions <- 0
-    }
-    paste0("We found ", numOptions, " options for you")
+    numOptions <- nrow(filtered())
+    paste0("There are ", numOptions, " options for you")
   })
   
-  prices <- reactive({
-    prices <- bcl
-    
-    if (is.null(input$countryInput)) {
-      return(NULL)
-    }
-    
-    prices <- dplyr::filter(prices, Type %in% input$typeInput)
-    if (input$filterCountry) {
-      prices <- dplyr::filter(prices, Country == input$countryInput)
-    }
-    
-    #############
-    if (input$sortByPrice){
-      prices <- dplyr::filter(prices, Price >= input$priceInput[1],
-                              Price <= input$priceInput[2])
-    }
-    ###################
-    
-    if(nrow(prices) == 0) {
-      return(NULL)
-    }
-    prices
-  })
   
-  output$plot <- renderPlot({
-    if (is.null(prices())) {
-      return(NULL)
-    }
-    
-    ggplot(prices(), aes(Alcohol_Content, fill = Type)) +
-      geom_histogram(colour = "black") +
-      theme_classic(20)
-  })
   
-  output$prices <- DT::renderDataTable({
-    prices()
+  
+  output$countryOutput <- renderUI({
+    selectInput("countryInput", "Country",
+                sort(unique(bcl$Country)),
+                selected = "CANADA")
   })
   
   output$download <- downloadHandler(
@@ -160,6 +260,9 @@ server <- function(input, output, session) {
       write.csv(prices(), con)
     }
   )
+  
+  
 }
 
+# Run the application 
 shinyApp(ui = ui, server = server)

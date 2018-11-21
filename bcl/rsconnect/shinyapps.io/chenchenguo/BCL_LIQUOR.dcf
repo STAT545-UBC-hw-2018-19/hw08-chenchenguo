@@ -5,8 +5,8 @@ account: chenchenguo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 579406
-bundleId: 1708248
+bundleId: 1713808
 url: https://chenchenguo.shinyapps.io/BCL_LIQUOR/
-when: 1542610473.09902
+when: 1542835367.60489
 asMultiple: FALSE
 asStatic: FALSE
